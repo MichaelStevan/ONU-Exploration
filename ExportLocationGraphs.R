@@ -11,10 +11,9 @@ summary(dt)
 dt = dt[,.(PopMale,PopFemale,PopTotal),.(Location,Time,Variant)]
 dt[,gt2017:=Time>as.Date(ISOdate(2017,12,31))]
 
-# 273 
-
 trim = function(x) sub("^\\s+","",x)
 
+# Caution! This takes long to execute, it will generate graphs for 273 locations.
 for(location in unique(dt$Location)){
   location_dt = copy(dt[Location==location,.(PopTotal,Time,Variant,gt2017)])
   ggplot(data=location_dt,aes(x=Time,y=PopTotal,col=Variant,linetype=gt2017))+
