@@ -28,7 +28,7 @@ dt  = dt[Variant=="Medium"]
 # Get unique rows
 dt = unique(dt)
 
-# Paint PopFemale over the continents
+# Paint for a particular country
 ggplot(data=dt[Location%in%c("China")],aes(x=Time,y=PopFemale))+
   geom_line(col="red")+
   geom_line(aes(y=PopMale),col="blue")+
@@ -36,21 +36,24 @@ ggplot(data=dt[Location%in%c("China")],aes(x=Time,y=PopFemale))+
   ylab("Population")+
   ggtitle("China")
 
-p1 = ggplot(data=dt[Location=="Europe"],aes(x=Time,y=PopFemale))+
+
+# Graphs per continent:
+
+ggplot(data=dt[Location=="Europe"],aes(x=Time,y=PopFemale))+
   geom_line(col="red")+
   geom_line(aes(y=PopMale),col="blue")+
   theme_minimal()+
   ylab("Population")+
   ggtitle("Europe")
 
-p2 = ggplot(data=dt[Location=="Asia"],aes(x=Time,y=PopFemale))+
+ggplot(data=dt[Location=="Asia"],aes(x=Time,y=PopFemale))+
   geom_line(col="red")+
   geom_line(aes(y=PopMale),col="blue")+
   theme_minimal()+
   ylab("Population")+
   ggtitle("Asia")
 
-p3 = ggplot(data=dt[Location=="Africa"],aes(x=Time,y=PopFemale))+
+ggplot(data=dt[Location=="Africa"],aes(x=Time,y=PopFemale))+
   geom_line(col="red")+
   geom_line(aes(y=PopMale),col="blue")+
   theme_minimal()+
@@ -61,7 +64,7 @@ p3 = ggplot(data=dt[Location=="Africa"],aes(x=Time,y=PopFemale))+
 dt_america = dt[Location%in%c("Central America","South America","Northern America")]
 dt_america = dt_america[,.(PopMale = mean(PopMale),PopFemale=mean(PopFemale)),.(Time)]
 
-p4 = ggplot(data=dt_america,aes(x=Time,y=PopFemale))+
+ggplot(data=dt_america,aes(x=Time,y=PopFemale))+
   geom_line(col="red")+
   geom_line(aes(y=PopMale),col="blue")+
   theme_minimal()+
