@@ -1,7 +1,7 @@
 library(data.table)
 library(ggplot2)
 
-dt = fread("/Users/michael/Downloads/Rtest/WPP2017_TotalPopulationBySex.csv")
+dt = fread("WPP2017_TotalPopulationBySex.csv")
 
 head(dt)
 dt[,`:=`(Location=factor(Location),Variant=factor(Variant),Time=as.Date(ISOdate(Time,12,31)))]

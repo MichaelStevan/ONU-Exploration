@@ -23,6 +23,7 @@ summary(dt)
 # Use meaningful columns
 dt[,`:=`(LocID=NULL,VarID=NULL)]
 
+# TODO: Use medium variant value
 # Average across location and time, to get rid of variants
 dt_avg  = copy(dt[,.(avgPopMale=mean(PopMale),
                 avgPopFemale = mean(PopFemale),
@@ -32,49 +33,77 @@ dt_avg  = copy(dt[,.(avgPopMale=mean(PopMale),
 # Get unique rows
 dt_avg = unique(dt_avg)
 
-dt_avg_location = dt_avg[Location%in%c("Europe","Asia","South America","Oceania")]
-
 # Paint avgPopFemale over the continents
-ggplot(data=dt_avg_location,aes(x=Time,y=avgPopFemale))+
-  facet_grid(Location~.)+
+ggplot(data=dt_avg[Location%in%c("Africa")],aes(x=Time,y=avgPopFemale))+
   geom_line(col="red")+
   geom_line(aes(y=avgPopMale),col="blue")+
   theme_minimal()+
-  ggtitle("Female Vs Male population over the years")
+  ylab("Population")
+  ggtitle("Africa")
 
 p1 = ggplot(data=dt_avg[Location=="Europe"],aes(x=Time,y=avgPopFemale))+
   geom_line(col="red")+
   geom_line(aes(y=avgPopMale),col="blue")+
   theme_minimal()+
+  ylab("Population")+
   ggtitle("Europe")
 
 p2 = ggplot(data=dt_avg[Location=="Asia"],aes(x=Time,y=avgPopFemale))+
   geom_line(col="red")+
   geom_line(aes(y=avgPopMale),col="blue")+
   theme_minimal()+
+  ylab("Population")+
   ggtitle("Asia")
 
-p3 = ggplot(data=dt_avg[Location=="South America"],aes(x=Time,y=avgPopFemale))+
+p3 = ggplot(data=dt_avg[Location=="Africa"],aes(x=Time,y=avgPopFemale))+
   geom_line(col="red")+
   geom_line(aes(y=avgPopMale),col="blue")+
   theme_minimal()+
-  ggtitle("South America")
+  ylab("Population")+
+  ggtitle("Africa")
+
+p4 = ggplot(data=dt_avg[Location=="America"],aes(x=Time,y=avgPopFemale))+
+  geom_line(col="red")+
+  geom_line(aes(y=avgPopMale),col="blue")+
+  theme_minimal()+
+  ylab("Population")+
+  ggtitle("America")
+
+
+
 
 gA <- ggplotGrob(p1)
 gB <- ggplotGrob(p2)
 gC <- ggplotGrob(p3)
+gD <- ggplotGrob(p4)
 
-maxWidth = grid::unit.pmax(gA$widths[2:5], gB$widths[2:5],gC$widths[2:5])
+
+maxWidth = grid::unit.pmax(gA$widths[2:5], gB$widths[2:5],gC$widths[2:5],gD$widths[2:5])
 gA$widths[2:5] <- as.list(maxWidth)
 gB$widths[2:5] <- as.list(maxWidth)
 gC$widths[2:5] <- as.list(maxWidth)
+gD$widths[2:5] <- as.list(maxWidth)
+
+p5 <- arrangeGrob(
+  gA, gB,gC,gD, nrow = 3, heights = c(0.80, 0.80,0.80))
+
+plot(p5)
 
 
-p4 <- arrangeGrob(
-  gA, gB,gC, nrow = 3, heights = c(0.80, 0.80,0.80))
 
 
-plot(p4)
+
+
+
+
+
+
+
+
+
+
+
+
 # Add new interesting columns:
 
 # Female to Male ratio, How many women per men eper year?
