@@ -8,6 +8,7 @@
 library(data.table)
 # Data Visualization
 library(ggplot2)
+library(gridExtra)
 
 
 dt = fread("WPP2017_TotalPopulationBySex.csv")
@@ -27,12 +28,53 @@ dt_avg  = copy(dt[,.(avgPopMale=mean(PopMale),
                 avgPopFemale = mean(PopFemale),
                 avgPopTotal = mean(PopTotal)),
                 .(Location,Time)])
-# Filter Nas
-dt_avg = dt_avg[complete.cases(dt_avg)]
 
 # Get unique rows
 dt_avg = unique(dt_avg)
 
+dt_avg_location = dt_avg[Location%in%c("Europe","Asia","South America","Oceania")]
+
+# Paint avgPopFemale over the continents
+ggplot(data=dt_avg_location,aes(x=Time,y=avgPopFemale))+
+  facet_grid(Location~.)+
+  geom_line(col="red")+
+  geom_line(aes(y=avgPopMale),col="blue")+
+  theme_minimal()+
+  ggtitle("Female Vs Male population over the years")
+
+p1 = ggplot(data=dt_avg[Location=="Europe"],aes(x=Time,y=avgPopFemale))+
+  geom_line(col="red")+
+  geom_line(aes(y=avgPopMale),col="blue")+
+  theme_minimal()+
+  ggtitle("Europe")
+
+p2 = ggplot(data=dt_avg[Location=="Asia"],aes(x=Time,y=avgPopFemale))+
+  geom_line(col="red")+
+  geom_line(aes(y=avgPopMale),col="blue")+
+  theme_minimal()+
+  ggtitle("Asia")
+
+p3 = ggplot(data=dt_avg[Location=="South America"],aes(x=Time,y=avgPopFemale))+
+  geom_line(col="red")+
+  geom_line(aes(y=avgPopMale),col="blue")+
+  theme_minimal()+
+  ggtitle("South America")
+
+gA <- ggplotGrob(p1)
+gB <- ggplotGrob(p2)
+gC <- ggplotGrob(p3)
+
+maxWidth = grid::unit.pmax(gA$widths[2:5], gB$widths[2:5],gC$widths[2:5])
+gA$widths[2:5] <- as.list(maxWidth)
+gB$widths[2:5] <- as.list(maxWidth)
+gC$widths[2:5] <- as.list(maxWidth)
+
+
+p4 <- arrangeGrob(
+  gA, gB,gC, nrow = 3, heights = c(0.80, 0.80,0.80))
+
+
+plot(p4)
 # Add new interesting columns:
 
 # Female to Male ratio, How many women per men eper year?
@@ -73,3 +115,4 @@ head(dt_avg_ftm_location[order(FemToMaleRatio)],20)
 
 # Paint in a world map:
 # Bubble Plot
+# Animated plots as years go by based on gender and age population.
