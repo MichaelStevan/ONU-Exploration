@@ -87,11 +87,22 @@ dt_trans$cluster <- clusters$cluster
 fv <- fviz_cluster(clusters, geom = "point", data = dt_numeric) +  ggtitle(paste("2D Cluster solution (k=", num_clusters, ")", sep=""))
 plot(fv)
 
+gg_color_hue <- function(n) {
+  hues = seq(15, 375, length = n + 1)
+  hcl(h = hues, l = 65, c = 100)[1:n]
+}
 
+cols = gg_color_hue(num_clusters)
+
+
+num_clusters <- 5
+final_clustering <- fread("ClusteringDiscoveries/clustering_final_5.csv")
+  
 mapDevice('x11')
-spdf <- joinCountryData2Map(dt_trans, joinCode="NAME", nameJoinColumn="Location")
+spdf <- joinCountryData2Map(final_clustering, joinCode="NAME", nameJoinColumn="Location")
 mapCountryData(spdf, nameColumnToPlot="cluster", addLegend=TRUE,
-               catMethod="fixedWidth",numCats = num_clusters,colourPalette="diverging")
+               catMethod="fixedWidth",numCats = num_clusters,colourPalette=cols)
+
 
 
 
@@ -104,7 +115,7 @@ plot_tendencies_by_cluster<- function(dt_trans){
   melted <- melt(trend_cluster, measure.vars = cnames)
   melted$variable <- as.numeric(as.character(melted$variable))
   ggplot(melted, aes(variable,value, col=as.factor(cluster))) + geom_line(size=1.5) +
-    xlab("Year") + ylab("Life Expectancy")+
+    xlab("Year") + ylab("Life Expectancy") + labs(fill = "Cluster") +
     theme(plot.title = element_text(face="bold", size=20))+
     theme(axis.title.x = element_text(size=18)) +
     theme(axis.title.y = element_text(size=18)) +
@@ -120,7 +131,7 @@ plot_tendencies_by_cluster<- function(dt_trans){
 }
 
 
-plot_tendencies_by_cluster(dt_trans)
+plot_tendencies_by_cluster(final_clustering)
 #group<-compareGroups(cluster~.,data=dt_trend, max.ylev=12, max.xlev = 21)
 #clustab<-createTable(group)
 #print(clustab)
