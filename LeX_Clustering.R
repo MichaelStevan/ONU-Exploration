@@ -6,7 +6,7 @@ library(compareGroups)
 library(rworldmap)
 library(clValid)
 library(NbClust)
-
+library(pracma)
 
 ## Read csv
 dt = fread("WPP2017_Period_Indicators_Medium.csv")
@@ -96,7 +96,7 @@ cols = gg_color_hue(num_clusters)
 
 
 num_clusters <- 5
-final_clustering <- fread("ClusteringDiscoveries/clustering_final_5.csv")
+final_clustering <- fread("ClusteringDiscoveries/cluster_final_edited.csv")
   
 mapDevice('x11')
 spdf <- joinCountryData2Map(final_clustering, joinCode="NAME", nameJoinColumn="Location")
@@ -109,13 +109,38 @@ mapCountryData(spdf, nameColumnToPlot="cluster", addLegend=TRUE,
 
 plot_tendencies_by_cluster<- function(dt_trans){
   trend_cluster <- dt_trans[,!"Location"]
-  trend_cluster <- trend_cluster[, lapply(.SD, mean), by=cluster]
-  cnames <- colnames(trend_cluster)
+  mean_trend_cluster <- trend_cluster[, lapply(.SD, mean), by=cluster]
+  
+  ## Confidence interval on the mean
+  #st_error_mean <- trend_cluster[, lapply(.SD, function(x){sd(x)/sqrt(length(x))}), by=cluster]
+  
+  std_trend_cluster <- trend_cluster[, lapply(.SD, std), by=cluster]
+  #std_trend_cluster <- trend_cluster[, lapply(.SD, function(x){qnorm(0.975)*sd(x)/sqrt(length(x))}), by=cluster]
+  #tp <- trend_cluster[, lapply(.SD, function(x){quantile(x,probs=0.975)}), by=cluster]
+  #lp <- trend_cluster[, lapply(.SD, function(x){quantile(x,probs=0.025)}), by=cluster]
+
+  cnames <- colnames(mean_trend_cluster)
   cnames <- cnames[cnames!="cluster"]
-  melted <- melt(trend_cluster, measure.vars = cnames)
-  melted$variable <- as.numeric(as.character(melted$variable))
-  ggplot(melted, aes(variable,value, col=as.factor(cluster))) + geom_line(size=1.5) +
-    xlab("Year") + ylab("Life Expectancy") + labs(fill = "Cluster") +
+  mean_melted <- melt(mean_trend_cluster, measure.vars = cnames)
+  mean_melted$variable <- as.numeric(as.character(mean_melted$variable))
+  std_melted <- melt(std_trend_cluster, measure.vars = cnames)
+  std_melted$variable <- as.numeric(as.character(std_melted$variable))
+  #tp_melted <- melt(tp, measure.vars = cnames)
+  #tp_melted$variable <- as.numeric(as.character(tp_melted$variable))
+  #lp_melted <- melt(lp, measure.vars = cnames)
+  #lp_melted$variable <- as.numeric(as.character(lp_melted$variable))
+  
+  melted <- mean_melted
+  names(melted)[names(melted)=="value"] <- "mean"
+  melted$std <- std_melted$value
+  #melted$tp <- tp_melted$value
+  #melted$lp <- lp_melted$value
+  
+  print(melted)
+  
+  ggplot(melted, aes(variable,mean, col=as.factor(cluster))) + geom_line(size=1.5) +
+    geom_ribbon(aes(ymin=mean-std, ymax=mean+std), linetype=2, alpha=0.08) +
+    xlab("Year") + ylab("Life Expectancy") + labs(col = "Cluster") +
     theme(plot.title = element_text(face="bold", size=20))+
     theme(axis.title.x = element_text(size=18)) +
     theme(axis.title.y = element_text(size=18)) +
@@ -125,7 +150,7 @@ plot_tendencies_by_cluster<- function(dt_trans){
     theme(legend.title=element_text(size=16)) +
     theme(legend.position="bottom", legend.box = "horizontal") +
     scale_x_continuous(breaks=seq(1950, 2020, by = 5))+
-    scale_y_continuous(breaks=seq(30,100, by = 10)) +
+    scale_y_continuous(breaks=seq(30,80, by = 10)) +
     guides(linetype=F)+
     ggtitle("Life Expectancy by cluster")
 }
