@@ -3,10 +3,7 @@ library(ggplot2)
 library(rgdal)
 library(rvest)
 
-library(shiny)
-
-
-dt = fread("./WPP2017_TotalPopulationBySex.csv")
+dt = fread("data/WPP2017_TotalPopulationBySex.csv")
 dt[Location=="United Kingdom", Location:="UK"]
 dt[Location=="United States of America", Location:="USA"]
 dt[Location=="Russian Federation", Location:="Russia"]
@@ -27,6 +24,10 @@ dt[Location=="Lao People's Democratic Republic", Location:="Laos"]
 dtKosovo = dt[Location=="Serbia",,]
 dtKosovo = dtKosovo[,Location:="Kosovo"]
 dt <- merge(dt,dtKosovo, all=TRUE)
+
+# Save treated dt for map
+#fwrite(dt,"poblacion_tratada_mapa.csv")
+
 dt[,`:=`(Location=factor(Location))]
 head(dt)
 
@@ -35,12 +36,13 @@ dtYear = dt[Time==mapYear, .(Location,PopTotal)]
 head(dtYear)
 
 
-map.world <- map_data("world")
+map.world = as.data.table(map_data("world"))
+setnames(map.world,"region","Location")
+setkey(map.world,Location)
+setkey(dtYear,Location)
+map.world_joined = dtYear[map.world,allow.cartesian=T]
 
-head(map.world['region'=="Kosovo"])
-as.factor(dtYear$Location) %>% levels()
-map.world_joined <- left_join(map.world, dtYear, by = c('region' = 'Location'))
-head(map.world)
+head(map.world_joined)
 
 minor_break_gen <- function(arg_1, arg_2) {
   print(arg_1)

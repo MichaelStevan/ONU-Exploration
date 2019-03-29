@@ -9,13 +9,15 @@ shinyUI(fluidPage(
     
        sliderInput("year",
                    "Year",
-                   min = 1800,
+                   min = 1950,
                    max = 2100,
-                   value = 1800,
+                   value = 2017,
                    animate = T),
     
     # Show a plot of the generated distribution
-       plotOutput("world_map")
+  mainPanel(
+    plotOutput("world_map")
+    )
   )
 )
 
