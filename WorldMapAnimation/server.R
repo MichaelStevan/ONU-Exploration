@@ -8,6 +8,8 @@ shinyServer(function(input, output) {
   # Map precomputations
   dt = fread('../data/poblacion_tratada_mapa.csv')
   dt[,Location:=factor(Location)]
+  min_pop = min(dt$PopTotal)
+  max_pop = max(dt$PopTotal)
   
   output$world_map <- renderPlot({
     
@@ -23,8 +25,7 @@ shinyServer(function(input, output) {
     ggplot() +
       geom_polygon(data = map.world_joined, aes(x = long, y = lat, group = group, fill = PopTotal)) +
       scale_fill_distiller(palette = "Spectral", na.value = "transparent")+
-      labs(title = 'Population by Countries'
-           ,subtitle = mapYear, fill="") +
+      labs(title = 'Population by Countries',subtitle = mapYear, fill="") +
       theme(text = element_text(family = "Gill Sans", color="#444444" )
             ,panel.grid = element_blank()
             ,plot.title = element_text(size = 20)
