@@ -28,6 +28,11 @@ dt  = dt[Variant=="Medium"]
 # Get unique rows
 dt = unique(dt)
 
+
+#################################
+# Female vs male population
+#################################
+
 # Paint for a particular country
 ggplot(data=dt[Location%in%c("China")],aes(x=Time,y=PopFemale))+
   geom_line(col="red")+
@@ -38,7 +43,6 @@ ggplot(data=dt[Location%in%c("China")],aes(x=Time,y=PopFemale))+
 
 
 # Graphs per continent:
-
 ggplot(data=dt[Location=="Europe"],aes(x=Time,y=PopFemale))+
   geom_line(col="red")+
   geom_line(aes(y=PopMale),col="blue")+
@@ -94,53 +98,28 @@ p5 <- arrangeGrob(
 
 plot(p5)
 
+#################################
 
 
+#################################
+# Experimenting with Female to Male ratio
+#################################
 
-
-
-
-
-
-
-
-
-
-
-
-
-# Add new interesting columns:
-
-# Female to Male ratio, How many women per men eper year?
-dt[,avgFemToMaleRatio:=PopFemale/PopMale,.(Location,Time)]
+# Female to Male ratio, How many women per men per year?
+dt[,femToMaleRatio:=PopFemale/PopMale,.(Location,Time)]
 
 # How have the ratio of women per men varied in several countries?
 dt_sel_countries = copy(dt[Location%in%c("Spain","France","Potugal","Italy","Germany","United Kingdom","United States of America","Qatar")])
 
-ggplot(data=dt_sel_countries,aes(x=Time,y=avgFemToMaleRatio,col=Location))+
+ggplot(data=dt_sel_countries,aes(x=Time,y=femToMaleRatio,col=Location))+
   geom_line(size=3,alpha=0.65)+
   theme_minimal()+
   ggtitle("Female to male ratio over the years")
 
 
-# Let's do it by continents
-continents = c("Africa",
-            "Europe",
-            "America",
-            "Asia",
-            "Australia")
-
-dt_continent = copy(dt[Location%in%continents])
-
-ggplot(data=dt_continent,aes(x=Time,y=avgFemToMaleRatio,col=Location))+
-  geom_line(size=3,alpha=0.65)+
-  theme_minimal()+
-  ggtitle("Female to male ratio over the years per continent")
-
-
 # Which countries have the most women per men?
 dt_ftm_location= copy(dt)
-dt_ftm_location = dt_ftm[,FemToMaleRatio:=mean(avgFemToMaleRatio),.(Location)][order(-FemToMaleRatio)]
+dt_ftm_location = dt_ftm_location[,avgFemToMaleRatio:=mean(femToMaleRatio),.(Location)]
 
 head(dt_ftm_location,20)
 
@@ -150,3 +129,28 @@ head(dt_ftm_location[order(FemToMaleRatio)],20)
 # Paint in a world map:
 # Bubble Plot
 # Animated plots as years go by based on gender and age population.
+
+
+#################################
+# Let's do it by continents
+#################################
+
+continents = c("Africa",
+            "Europe",
+            "Central America",
+            "South America",
+            "Northern America",
+            "Asia",
+            "Australia")
+
+dt_continent = copy(dt[Location%in%continents])
+dt_continent[grep("America",dt_continent$Location),Location:="America"]
+dt_continent[Location=="America",`:=`(PopFemale=mean(PopFemale),PopMale=mean(PopMale)),.(Location,Time)]
+dt_continent[,femToMaleRatio:=PopFemale/PopMale,.(Location,Time)]
+
+ggplot(data=dt_continent,aes(x=Time,y=femToMaleRatio,col=Location))+
+  geom_line(size=3,alpha=0.65)+
+  theme_minimal()+
+  ggtitle("Female to male ratio over the years per continent")
+
+#################################
