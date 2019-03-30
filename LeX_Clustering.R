@@ -9,7 +9,7 @@ library(NbClust)
 library(pracma)
 
 ## Read csv
-dt = fread("WPP2017_Period_Indicators_Medium.csv")
+dt = fread("data/WPP2017_Period_Indicators_Medium.csv")
 
 ## Get desired columns
 dt = dt[,.(Location,Time,LEx,LExMale,LExFemale)]
@@ -49,7 +49,7 @@ min_val <- min(dt_numeric)
 dt_clustering <- apply(dt_numeric,2,function(x){(x-min_val)/(max_val-min_val)})
 
 ## Optimal number of clusters
-# fviz_nbclust(dt_clustering, kmeans, method = "wss")
+#fviz_nbclust(dt_clustering, kmeans, method = "wss")
 
 
 # WSS
