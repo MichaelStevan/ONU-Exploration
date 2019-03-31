@@ -45,7 +45,7 @@ dt_numeric = copy(dt_trans)[,Location:=NULL]
 
 ## Transform table, get diff between consecutive periods
 cols <- tail(colnames(dt_numeric),-1)
-dt_trend <- apply(dt_numeric,1, function(x)diff(x))
+dt_trend = apply(dt_numeric,1, function(x)diff(x))
 dt_trend <- data.table(t(dt_trend))
 
 max_val <- max(dt_trend)
