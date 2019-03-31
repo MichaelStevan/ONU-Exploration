@@ -1,6 +1,5 @@
 library(data.table)
 library(ggplot2)
-library(rgdal)
 library(rvest)
 
 dt = fread("data/WPP2017_Period_Indicators_Medium.csv")
@@ -32,9 +31,11 @@ dt = merge(dt,dtKosovo, all=TRUE)
 dt[,Time:=apply(dt[,.(Time)],1,function(x){as.numeric(unlist(strsplit(x,"-"))[2])})]
 
 # Save treated dt for map
-fwrite(dt,"poblacion_tratada_mapa.csv")
+#fwrite(dt,"poblacion_tratada_mapa.csv")
 
 dt[,`:=`(Location=factor(Location))]
+min_Lex = min(dt$LEx,na.rm = T)
+max_Lex = max(dt$LEx,na.rm = T)
 head(dt)
 
 mapYear <- 2050
@@ -52,7 +53,7 @@ head(map.world_joined)
 
 minor_break_gen <- function(arg_1, arg_2) {
   print(arg_1)
-  res<-seq(from = arg_1, to = arg_2, length.out = 100000);
+  res=seq(from = arg_1, to = arg_2, length.out = 100000);
   res;
 }
 
@@ -76,8 +77,35 @@ ggplot() +
 
 # Extract Images for GIFT
 
+years = seq(1955,2100,5)
 
+for(year in years){
+  
+  dtYear = dt[Time==year, .(Location,LEx)]
 
-
+  map.world = as.data.table(map_data("world"))
+  setnames(map.world,"region","Location")
+  setkey(map.world,Location)
+  setkey(dtYear,Location)
+  map.world_joined = dtYear[map.world,allow.cartesian=T]
+  
+  ggplot() +
+    geom_polygon(data = map.world_joined, aes(x = long, y = lat, group = group, fill = LEx)) +
+    scale_fill_distiller(palette = "Spectral", na.value = "transparent",limits=c(min_Lex,max_Lex))+
+    labs(title = 'Life Expectancy by Country'
+         ,subtitle = year, fill="") +
+    theme(text = element_text(family = "Gill Sans", color="#444444" )
+          ,panel.grid = element_blank()
+          ,plot.title = element_text(size = 20)
+          ,plot.subtitle = element_text(size = 10)
+          ,axis.text = element_blank()
+          ,axis.title = element_blank()
+          ,axis.ticks = element_blank()
+          ,legend.position = "right"
+    )
+  
+  # Save file
+  ggsave(paste0("./LExMaps/","LEx_",year,".png"))
+}
 
 

@@ -24,7 +24,7 @@ shinyServer(function(input, output) {
     ggplot() +
       geom_polygon(data = map.world_joined, aes(x = long, y = lat, group = group, fill = LEx)) +
       scale_fill_distiller(palette = "Spectral", na.value = "transparent",limits=c(min_Lex,max_Lex))+
-      labs(title = 'Life Expectancy by Countries'
+      labs(title = 'Life Expectancy by Country'
            ,subtitle = mapYear, fill="") +
       theme(text = element_text(family = "Gill Sans", color="#444444" )
             ,panel.grid = element_blank()
