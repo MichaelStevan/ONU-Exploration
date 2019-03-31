@@ -118,7 +118,7 @@ plot_tendencies_by_cluster(dt_urban)
 # Medium Urbanization, High Urbanization accordingly.
 
 dt = copy(dt_urban)[,.(Location,cluster)]
-map_cluster = c("Low Urbanization","High Urbanization","Medium Urbanization")
+map_cluster = c("LowUrbanization","HighUrbanization","MediumUrbanization")
 dt[,cluster:=map_cluster[cluster]]
 
 # Let's join our dataset to country indicators
