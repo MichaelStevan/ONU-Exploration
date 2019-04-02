@@ -6,44 +6,35 @@ library(ggplot2)
 ##############################
 # Load data
 ##############################
-dt = fread('RuralExodus/urbanization_clustering_joined.csv')
+dt = fread('RuralExodus/dt_subset_classification.csv')
 
 dt_location = copy(dt)$Location
 set.seed(27)
 
 dt = dt[,!"Location"]
-dt[,target:=factor(target)]
 
-dt_features = dt[,!"target"]
+map_target = c("cluster1","cluster2","cluster3")
+
+dt[,target:=map_target[target]]
+
+dt_features = dt
 dt_labels = dt[,target]
-
-##############################
-# Feature selection
-##############################
-
-# Easy feature selection by avoiding highly correlated
-
-corr_matrix = cor(dt_features)
-# index >0.75 correlation
-high_corr = findCorrelation(corr_matrix, cutoff=0.75)
-# highly correlated features
-names(dt_features)[high_corr]
-# Eliminate these highly correlated features
-dt_features= copy(dt_features)[,names(dt_features)[high_corr]:=NULL]
 
 ##############################
 # Model training & Evaluating
 ##############################
 
 # Create Data partition
-
-# We concatenate again with labels
-dt_features = cbind(dt_features,target = dt_labels)
-
 index_train = createDataPartition(dt_labels,p=0.8,list=F)
 
 train = dt_features[index_train]
 test = dt_features[-index_train]
+
+train[,target:=factor(target)]
+test[,target:=factor(target)]
+
+table(train$target)
+table(test$target)
 
 # Define control and metrics
 set.seed(27)
@@ -90,3 +81,4 @@ summary(results)
 bwplot(results)
 dotplot(results)
 
+# Xgboost model

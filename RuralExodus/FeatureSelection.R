@@ -1,3 +1,10 @@
+# We will try an extract the most important features, related to falling into
+# a certain level of urbanization.
+#
+# Miguel Esteban
+# miestgo@gmail.com 
+
+
 library(data.table)
 library(caret)
 library(mlbench)
@@ -10,59 +17,38 @@ dt = fread('RuralExodus/urbanization_clustering_joined.csv')
 
 # That's a hell of attributes, let's perform feature selection:
 dt_location = copy(dt)$Location
-dt_features = dt[,!c("target","Location")]
+dt= dt[,!"Location"]
+
+
+# 1) Selection by filtering + random forest
+filterCtrl = sbfControl(functions = rfSBF, method = "repeatedcv", repeats = 5)
 
 set.seed(27)
+rfWithFilter = sbf(target~., data=dt, sbfControl = filterCtrl)
 
-# 1) Finding highly correlated features
-corr_matrix = cor(dt_features)
+rfWithFilter
 
-# index >0.75 correlation
+dt_filtered = dt[,.SD,.SDcols=predictors(rfWithFilter)]
+dt_filtered = cbind(dt_filtered,target = dt$target)
+
+# 2) Finding highly correlated features
+set.seed(27)
+corr_matrix = cor(dt_filtered[,!"target"])
+
+# index <0.75 correlation
 high_corr = findCorrelation(corr_matrix, cutoff=0.75)
 
 # highly correlated features
-names(dt_features)[high_corr]
+names(dt_filtered)[high_corr]
 
 # Eliminate these highly correlated features
-dt_features_lowcorr = copy(dt_features)[,names(dt_features)[high_corr]:=NULL]
+dt_filtered_lowcorr = copy(dt_filtered)[,names(dt_filtered)[high_corr]:=NULL]
 
-names(dt_features_lowcorr)
+names(dt_filtered_lowcorr)
 
 # Graph non correlated features
-corrplot(cor(dt_features_lowcorr), method = "square")
-chart.Correlation(dt_features_lowcorr)
-
-# 2) Feature importance ranking
-
-control = trainControl(method="repeatedcv", number=10, repeats=3)
-
-dt_train = cbind(dt_features_lowcorr,target = dt$target)
-dt_train[,target:=factor(target)]
-
-set.seed(27)
-model = train(target~., 
-               data=dt_train, 
-               method="lvq", #rf
-               preProcess="scale", 
-               trControl=control)
-
-# Estimated variable importance
-importance = varImp(model, scale=F)
-
-print(importance)
-plot(importance)
-
-# How are important variables distributed on target data?
-dt_netMigrations2013=dt[,
-                        .(avgNetMigrations2013=mean(NetMigrations_2013)),
-                        by=target]
-
-ggplot(data=dt_netMigrations2013,aes(x=target, 
-                               y=avgNetMigrations2013,
-                               fill=target))+
-  geom_col()+
-  theme_minimal()+
-  guides(fill=F)
+corrplot(cor(dt_filtered_lowcorr), method = "square")
+chart.Correlation(dt_filtered_lowcorr)
 
 # TFR: Total fertility (live births per woman)
 # NRR: Net reproduction rate (surviving daughters per woman)
@@ -84,6 +70,13 @@ ggplot(data=dt_netMigrations2013,aes(x=target,
 # SRB: Sex ratio at birth (male births per female births)
 # MAC: Female mean age of childbearing (years)
 # * not published for variants other than Medium.
+
+# I think 16 variables is a nice subset for a model, let's try 
+# to make something with this
+
+dt_filtered_lowcorr = cbind(Location = dt_location,dt_filtered_lowcorr)
+
+fwrite(dt_filtered_lowcorr,'dt_subset_classification.csv')
 
 # 3) Recursive feature elimination
 

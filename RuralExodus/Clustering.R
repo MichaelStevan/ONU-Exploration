@@ -76,7 +76,7 @@ ggplot(data=index,aes(x=seq(2,10),y=index)) + geom_line(color="cadetblue4",size=
 # Perform clustering
 ########################
 
-num_clusters = 4
+num_clusters = 3
 clusters = kmeans(dt_numeric, num_clusters,nstar=10)
 dt_urban$cluster = clusters$cluster
 
@@ -103,7 +103,7 @@ dev.off()
 spdf  = joinCountryData2Map(dt_to_map, joinCode="NAME", nameJoinColumn="Location")
 par(mai=c(0,0,0.2,0),xaxs="i",yaxs="i")
 mapCountryData(spdf, nameColumnToPlot="cluster",
-               mapTitle = "Urbanization Clustering per Country",
+               mapTitle = "Urbanization Clusters by Country",
                addLegend=T,
                catMethod="fixedWidth",numCats = num_clusters,colourPalette=cols)
 
